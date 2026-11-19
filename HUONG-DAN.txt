@@ -43,3 +43,10 @@ Thu muc src/: cac file JS + head.html (build.py ghep thanh index.html).
 * Giọng đọc chạy ngay trong trình duyệt, không gọi dịch vụ ngoài. Lần đầu tải khoảng 22 MB mô hình (sau đó trình duyệt lưu lại). 
 * 3 giọng: Mimi (nữ trẻ), Leo (nam), người dẫn (nữ). Giọng này dùng chung khi học và khi quay video, nên giống hệt nhau.
 * Cài đặt có thể đổi sang "Giọng của máy" hoặc "Giọng nhẹ" nếu cần.
+
+--- QUAY VIDEO PRO (KEY THEO THIẾT BỊ) ---
+* Khi khách bấm "Quay video" hoặc "Quay video bài này", app hiện hộp thoại mời liên hệ admin (nút dẫn tới nhóm Zalo) và nút "Để sau, quay lại bài học".
+* Khách đã có key thì mở mục "Đã có key? Nhập tại đây", gửi cho admin Mã thiết bị, nhập key và bấm Kích hoạt.
+* Mỗi key chỉ chạy trên đúng 1 thiết bị và hết hạn sau 30 ngày (x số tháng) tính từ ngày cấp.
+* Công cụ tạo key nằm trong thư mục ADMIN-RIENG (KHÔNG đưa lên GitHub): tao-key.html và so-theo-doi-key.xlsx.
+* Thumbnail: mimi-thumbnail.png (đã gắn sẵn làm ảnh chia sẻ link và biểu tượng tab).

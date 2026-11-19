@@ -280,6 +280,7 @@ function mountStage(){
   Eng.mount(host);
 }
 function go(v){
+  if(v==='studio'&&typeof proActive==='function'&&!proActive()){proOpen();return}
   if(recOn)stopRec();
   stopAll();playing=false;updPlay();Eng.setTalk(null);
   currentView=v;$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
@@ -608,6 +609,7 @@ function recUI(on){$('#bStartRec').disabled=on;$('#bStopRec').disabled=!on;$$('#
 function pickMime(){const c=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];for(const m of c){try{if(MediaRecorder.isTypeSupported(m))return m}catch(e){}}return ''}
 async function startRec(){
   if(recOn)return;
+  if(typeof proActive==='function'&&!proActive()){proOpen();return}
   if(!window.MediaRecorder||!Eng.comp.captureStream){toast('Trình duyệt chưa hỗ trợ quay. Hãy dùng Chrome, Edge hoặc Firefox bản mới.');return}
   if(!Eng.isOK()){toast('Cần WebGL để quay cảnh 3D');return}
   const l=byId($('#stLesson').value),pi=+$('#stPart').value;

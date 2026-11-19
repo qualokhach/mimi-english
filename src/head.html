@@ -1,3 +1,4 @@
+<meta property="og:title" content="Mimi English"><meta property="og:description" content="Học tiếng Anh vui cùng Mimi: bài học 3D, ngữ pháp, đọc, nghe, luyện nói từ A1 đến C2"><meta property="og:image" content="mimi-thumbnail.png"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="mimi-thumbnail.png">
 <title>Mimi English</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
@@ -420,6 +421,20 @@ p{margin:0}
 </main>
 </div>
 
+<div class="modal" id="proModal" role="dialog" aria-modal="true" aria-label="Quay video">
+  <div class="panel" style="text-align:center">
+    <h3>Bạn muốn quay video?</h3>
+    <p>Vui lòng liên hệ admin để có key nha. Chúc bạn học vui vẻ!</p>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn" id="proZalo">Liên hệ admin ngay</button><button class="btn alt" id="proLater">Để sau, quay lại bài học</button></div>
+    <details class="mt" style="text-align:left"><summary style="cursor:pointer;font-weight:800">Đã có key? Nhập tại đây</summary>
+      <p class="muted" style="font-size:13px;margin:8px 0 4px">Mã thiết bị của bạn (gửi mã này cho admin để nhận key):</p>
+      <div class="row" style="align-items:center"><b id="proDev" style="font-size:22px;letter-spacing:2px"></b><button class="btn alt sm" id="proCopy">Sao chép</button></div>
+      <input id="proKey" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid var(--line);font:inherit;text-transform:uppercase;background:var(--surface2);color:var(--ink)">
+      <div class="row mt"><button class="btn" id="proGo">Kích hoạt</button></div>
+      <div id="proMsg" class="muted" style="margin-top:8px;font-weight:700"></div>
+    </details>
+  </div>
+</div>
 <div class="modal" id="setModal" role="dialog" aria-modal="true" aria-label="Cài đặt">
   <div class="panel fgrid">
     <h3>Cài đặt</h3>
