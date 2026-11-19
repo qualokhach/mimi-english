@@ -1,0 +1,45 @@
+MIMI ENGLISH - ung dung hoc tieng Anh 3D (A1 den C2)
+
+CHAY THU
+1. Giai nen thu muc nay.
+2. Mo terminal trong thu muc "mimi-english", chay:   python3 -m http.server 8000
+3. Mo trinh duyet: http://localhost:8000
+   (Can Internet: Three.js tu cdnjs, nhac nen tu GitHub, giong AI tu jsDelivr va Hugging Face.)
+
+DAN LEN WEB (vi du GitHub Pages)
+Chi can dua file index.html len repo cua app. KHONG can thu muc music.
+
+GIONG DOC AI TU NHIEN
+- App dung mo hinh Kokoro (chay ngay trong trinh duyet) cho ca luc hoc lan luc quay video, nen hai noi nghe giong het nhau.
+- Lan dau can tai khoang 90 MB (luu trong trinh duyet, lan sau khong tai lai). Tien do hien o Cai dat > Giong AI va o man hinh Quay video.
+- Giong nu: Heart (nguoi dan chuyen va nhan vat A). Giong nam: Michael (nhan vat B).
+- Quay video: app tao san toan bo giong AI truoc khi quay, nen tieng khong bi ngat quang.
+- Neu khong tai duoc (mat mang, trinh duyet cu), app tu dung giong cua may luc hoc va giong ngoai tuyen luc quay.
+- Nen dung Chrome hoac Edge ban moi tren may tinh. May yeu co the tao giong cham hon.
+- Tat/bat trong Cai dat: "Giong AI tu nhien".
+
+NHAC NEN
+Doc truc tiep tu repo https://github.com/qualokhach/nhac-cua-minh (thu muc music, danh sach trong songs.json), chon ngau nhien.
+Thu tu tai: raw.githubusercontent.com -> cdn.jsdelivr.net -> thu muc music/ canh index.html (neu co) -> nhac tu tao.
+
+LUU TIEN TRINH
+Luu trong trinh duyet (localStorage), khong dung cloud. Co nut sao luu / khoi phuc.
+
+MA NGUON
+Thu muc src/: cac file JS + head.html (build.py ghep thanh index.html).
+
+--- CẬP NHẬT (giọng nhẹ, điện thoại, luyện nói) ---
+* Giọng đọc mặc định là "Giọng nhẹ": tải gần như tức thì, mượt mọi máy, nghe giống nhau khi học và trong video.
+  Cài đặt có thêm "Giọng của máy" (tự nhiên hơn nhưng trình duyệt không thu được vào video) và "Giọng AI" (nặng ~90 MB, mặc định tắt).
+* Điện thoại và máy yếu tự giảm đồ họa (30 khung hình/giây, bỏ khử răng cưa), khi quay video vẫn full chất lượng.
+* Tab "Luyện nói": nói vào micro, app chấm từng từ theo 5 bậc (Khởi động, Đang tiến bộ, Khá, Tốt, Xuất sắc) và góp ý phát âm.
+  Cần Chrome/Edge/Safari, địa chỉ https (hoặc localhost) và cho phép micro. Điểm lưu trong trình duyệt.
+
+* Quay video với đúng giọng đang nghe: trong tab "Quay video" tick "Dùng đúng giọng đang nghe…" (chỉ máy tính, Chrome/Edge). Khi quay, chọn tab này và bật "Chia sẻ âm thanh của tab". Điện thoại không làm được, sẽ dùng giọng nhẹ.
+
+--- GIỌNG AI NHÚNG SẴN (phiên bản mới nhất) ---
+* App giờ có kèm thư mục "assets" (khoảng 37 MB): mô hình giọng Piper/VITS đã nén, bộ chạy ONNX và bộ chuyển chữ thành âm. Tổng cả app khoảng 42 MB.
+* BẮT BUỘC đưa lên GitHub Pages (hoặc web hosting) CẢ index.html VÀ thư mục assets cùng cấp. Không mở file index.html trực tiếp từ ổ đĩa (trình duyệt chặn đọc file giọng).
+* Giọng đọc chạy ngay trong trình duyệt, không gọi dịch vụ ngoài. Lần đầu tải khoảng 22 MB mô hình (sau đó trình duyệt lưu lại). 
+* 3 giọng: Mimi (nữ trẻ), Leo (nam), người dẫn (nữ). Giọng này dùng chung khi học và khi quay video, nên giống hệt nhau.
+* Cài đặt có thể đổi sang "Giọng của máy" hoặc "Giọng nhẹ" nếu cần.
