@@ -327,6 +327,7 @@ p{margin:0}
   .hud .chip{padding:5px 9px;font-size:12px;white-space:nowrap}.hud .chip *{white-space:nowrap}.hud .ib{width:34px;height:34px;flex:none}
   @media (max-width:380px){.brand span:last-child{display:none}}
   .lhead h2{font-size:20px}
+  #script{max-height:42vh;overflow-y:auto;overscroll-behavior:contain;position:relative;padding-right:2px}
   .btn{min-height:44px}
   #mnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);box-shadow:0 -6px 24px rgba(30,40,100,.16);border-radius:20px 20px 0 0;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));justify-content:space-around;gap:2px}
   #mnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:800;color:var(--muted);padding:6px 2px;border-radius:14px;min-width:0;min-height:52px;white-space:nowrap}
@@ -342,6 +343,11 @@ p{margin:0}
   .modal .panel{max-height:88vh;overflow:auto}
 }
 @media (display-mode:standalone){body{user-select:none;-webkit-user-select:none}input,textarea,.sptxt,#dictBox *{user-select:text;-webkit-user-select:text}}
+.arow{display:flex;align-items:center;gap:10px;flex:1 1 100%;flex-wrap:wrap}
+.mg{display:flex;align-items:center;gap:8px;flex:1 1 180px;min-width:0;background:var(--surface2);border-radius:999px;padding:2px 14px 2px 2px}
+.mg .ib{width:36px;height:36px}.mg .vol{flex:1;min-width:60px}.mg .lb{font-size:12px;font-weight:800;color:var(--muted)}
+#bVoice.txt{padding:0 14px;gap:6px;display:inline-flex;align-items:center;min-height:40px}#bVoice svg{width:20px;height:20px}
+.vstat{flex:1 1 100%;font-size:12px;color:var(--muted);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -384,11 +390,10 @@ p{margin:0}
           <option value="0.7">Chậm</option><option value="1" selected>Bình thường</option><option value="1.3">Nhanh</option>
         </select>
         <button class="ib txt" id="bBi" aria-label="Giảng song ngữ" title="Giảng song ngữ Anh và Việt">Anh+Việt</button>
-        <button class="ib" id="bMus" aria-label="Bật tắt nhạc nền" title="Nhạc nền"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
-        <input type="range" id="rVol" min="0" max="1" step="0.05" value="0.5" aria-label="Âm lượng nhạc nền" title="Âm lượng nhạc nền" class="vol">
         <button class="ib" id="bSub" aria-label="Phụ đề"></button>
-        <button class="ib" id="bVoice" aria-label="Bật tắt giọng đọc"></button>
         <button class="ib" id="bFull" aria-label="Toàn màn hình"></button>
+        <div class="arow"><button class="ib txt" id="bVoice" aria-label="Bật tắt giọng đọc"></button><div class="mg"><button class="ib sm" id="bMus" aria-label="Bật tắt nhạc nền" title="Nhạc nền"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+        <input type="range" id="rVol" min="0" max="1" step="0.05" value="0.5" aria-label="Âm lượng nhạc nền" title="Âm lượng nhạc nền" class="vol"><span class="lb">Nhạc</span></div><span class="vstat" id="vStat"></span></div>
       </div>
       <div class="lhead"><h2 id="lTitle"></h2><p id="lSub"></p></div>
       <div class="parts" id="parts"></div>
@@ -469,7 +474,7 @@ p{margin:0}
   <div class="panel fgrid">
     <h3>Cài đặt</h3>
     <label>Giọng đọc tiếng Anh<select id="setVoice"></select></label>
-    <label>Kiểu giọng đọc<select id="setVM"><option value="ai">Giọng AI nhúng sẵn (khuyên dùng) – giống nhau khi học và trong video</option><option value="native">Giọng của máy – video dùng giọng nhẹ</option><option value="light">Giọng nhẹ – nhỏ gọn, nghe hơi máy</option></select></label>
+    <label>Kiểu giọng đọc<select id="setVM"><option value="ai">Giọng Mimi (khuyên dùng)</option><option value="native">Giọng thiết bị</option><option value="light">Giọng bổ sung</option></select></label>
     <div class="muted" id="nvNote" style="font-size:13px;margin:2px 0 8px"></div>
     <div class="row"><button class="btn alt" id="bTestVoice">Nghe thử</button><span class="muted" id="voiceNote" style="font-size:13px"></span></div>
     <label class="chk"><input type="checkbox" id="setSel" checked> Bôi chọn chữ để xem bản dịch nổi</label>
@@ -7258,17 +7263,18 @@ async function msBuf(text,who,rate){
   const buf=await new Promise((res,rej)=>AU.ctx.decodeAudioData(ab.slice(0),res,rej));
   MS.cache[key]=buf;return buf;
 }
-/* ---------- Giọng AI tự nhiên (Kokoro chạy trong trình duyệt) ----------
+/* ---------- Giọng Mimi tự nhiên (Kokoro chạy trong trình duyệt) ----------
    Dùng chung một giọng khi học và khi quay video, nên hai nơi nghe giống hệt nhau. */
 const NV={state:0,p:null,tts:null,cache:new Map(),q:Promise.resolve(),pct:0};
 const nvOn=()=>ST.set.vm==='ai';
 const lightOn=()=>ST.set.vm!=='native'&&!nvOn();
 function nvNote(t){const e=document.getElementById('nvNote');if(e)e.textContent=t||''}
-function nvNoteAuto(){nvNote(ST.set.vm==='native'?'Giọng của máy. Trình duyệt không cho thu giọng này vào video, nên video dùng giọng nhẹ.':nvOn()?(NV.state===2?'Giọng AI đã sẵn sàng. Dùng chung cho học và video, hoạt động ngoại tuyến.':NV.state===1?('Đang tải giọng AI… '+NV.pct+'% (chỉ lần đầu, sau đó lưu trong trình duyệt)'):NV.state===-1?'Không tải được giọng AI nên đang dùng giọng dự phòng. Hãy mở app qua địa chỉ web (không mở file trực tiếp) rồi tải lại.':'Giọng AI sẽ tự tải khi bắt đầu học.'):'Giọng nhẹ: nhỏ gọn, nghe hơi máy.')}
+function nvNoteAuto(){try{vStatUpd()}catch(e){}
+nvNote(ST.set.vm==='native'?'Giọng thiết bị: tuỳ máy của bạn. Trình duyệt không thu được giọng này vào video, nên video dùng giọng bổ sung.':nvOn()?(NV.state===2?'Giọng Mimi đã sẵn sàng. Dùng chung cho học và video, hoạt động ngoại tuyến.':NV.state===1?('Đang tải giọng Mimi… '+NV.pct+'% (chỉ lần đầu, sau đó lưu trong trình duyệt)'):NV.state===-1?'Không tải được giọng Mimi nên đang dùng giọng thiết bị. Hãy mở app qua địa chỉ web (không mở file trực tiếp) rồi tải lại.':'Giọng Mimi sẽ tự tải khi bắt đầu học.'):'Giọng bổ sung: nhỏ gọn, dùng khi cần.')}
 function nvLoad(){
   if(NV.p)return NV.p;
   NV.state=1;NV.pct=0;nvNoteAuto();
-  NV.p=PIPER.load(p=>{NV.pct=Math.min(99,p);nvNoteAuto();const r=document.getElementById('recStatus');if(r&&r.dataset.nv==='1')r.textContent='Đang tải giọng AI… '+NV.pct+'%'}).then(()=>{NV.state=2;nvNoteAuto();return true});
+  NV.p=PIPER.load(p=>{NV.pct=Math.min(99,p);nvNoteAuto();const r=document.getElementById('recStatus');if(r&&r.dataset.nv==='1')r.textContent='Đang tải giọng Mimi… '+NV.pct+'%'}).then(()=>{NV.state=2;nvNoteAuto();return true});
   NV.p.catch(e=>{NV.state=-1;NV.err=e;nvNoteAuto()});
   return NV.p;
 }
@@ -7293,14 +7299,21 @@ function nvPrefetch(list,i){
 }
 async function sayNeural(text,o,done,alive){
   try{
-    const buf=await nvBuf(text,o.who||'A',o.rate||.9);
+    const pr=nvBuf(text,o.who||'A',o.rate||.9);
+    const buf=await Promise.race([pr,new Promise(r=>setTimeout(()=>r(null),Eng.low?2200:3500))]);
     if(!alive())return;
+    if(!buf){pr.catch(()=>{});return sayFallback(text,o,done,alive)}
     if(!auInit())return done();
     const src=AU.ctx.createBufferSource();src.buffer=buf;src.connect(AU.voice);voiceSrc=src;
     if(Eng.sp&&Eng.sp.en===text){Eng.sp.t0=performance.now();Eng.sp.dur=buf.duration*1000}
     src.onended=done;src.start();setTimeout(done,buf.duration*1000+600);
   }catch(e){if(alive())sayRec(text,o,done)}
 }
+/* Máy chậm: nếu giọng Mimi chưa kịp tạo xong thì đọc câu này bằng giọng thiết bị để luôn có tiếng */
+function sayFallback(text,o,done,alive){
+  const v=enVoice();
+  if(SS&&v&&!(recOn&&!recTab)){try{SS.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=o.rate||ST.set.rate;u.onend=done;u.onerror=done;SS.speak(u);setTimeout(done,estDur(text,u.rate)*1000+4500);return}catch(e){}}
+  sayRec(text,o,done)}
 function nvSpeak(text,rate){nvBuf(text,'N',rate).then(b=>{if(!auInit())return;const s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.voice);s.start()}).catch(()=>{})}
 let voiceSrc=null;
 async function sayRec(text,o,done){
@@ -7313,6 +7326,11 @@ async function sayRec(text,o,done){
   }catch(e){done()}
 }
 function duck(on){try{if(AU.mduck)AU.mduck.gain.setTargetAtTime(on?.22:1,AU.ctx.currentTime,.12)}catch(e){}}
+/* chỉ cuộn bên trong khung chữ, không kéo cả trang */
+function keepInBox(on){const sc=$('#script'),cur=document.querySelector('.cur');let box=null;
+  if(sc&&getComputedStyle(sc).overflowY==='auto'&&sc.scrollHeight>sc.clientHeight)box=sc;else if(cur&&getComputedStyle(cur).overflowY==='auto'&&cur.scrollHeight>cur.clientHeight)box=cur;
+  if(!box)return;const br=box.getBoundingClientRect(),r=on.getBoundingClientRect();
+  if(r.top<br.top+8||r.bottom>br.bottom-8)box.scrollTo({top:Math.max(0,box.scrollTop+(r.top-br.top)-box.clientHeight/2+r.height/2),behavior:'smooth'})}
 function say(text,o){
   o=o||{};return new Promise(res=>{
     const rate=o.rate||ST.set.rate,est=estDur(text,rate)*1000;let fin=false,tm;
@@ -7467,7 +7485,7 @@ function setCur(i,preview){
   if(f.pi!==curPart){curPart=f.pi;renderParts();renderScript()}
   $$('#script li').forEach(li=>li.classList.toggle('on',+li.dataset.i===idx));
   $$('#seek i').forEach((e,k)=>{e.className=k<idx?'d':(k===idx?'c':'')});
-  const on=$('#script li.on');if(on&&playing){const r=on.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)on.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  const on=$('#script li.on');if(on&&playing)keepInBox(on);
   Eng.partTitle=f.pt;
   if(preview){Eng.show(f.step);Eng.sp={en:f.step.en,sub:f.step.sub,hl:false}}
 }
@@ -7490,9 +7508,13 @@ $('#bNext').onclick=()=>{if(idx<flat.length-1)jump(idx+1)};
 $('#seek').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();jump(Math.min(flat.length-1,Math.floor((e.clientX-r.left)/r.width*flat.length)))};
 $('#selSpeed').onchange=e=>{speedMul=+e.target.value;ST.set.speed=speedMul;save();if(playing){stopAll();play()}};
 $('#bBi').onclick=()=>{ST.set.bi=!ST.set.bi;if(ST.set.bi){Eng.subMode='both'}else Eng.subMode=ST.set.sub;save();refreshIcons();toast(ST.set.bi?'Giảng song ngữ: bật. Sau câu tiếng Anh sẽ có lời giải thích tiếng Việt.':'Giảng song ngữ: tắt. Chỉ giảng tiếng Anh.')};
+function vStatUpd(){const e=document.getElementById('vStat');if(!e)return;let t='';
+  if(!ST.set.voice)t='Giọng đọc đang TẮT. Bấm nút “Giọng” để nghe.';
+  else if(nvOn())t=NV.state===2?'Giọng Mimi đã sẵn sàng':NV.state===1?('Đang tải giọng Mimi '+NV.pct+'%, tạm dùng giọng thiết bị'):NV.state===-1?'Chưa tải được giọng Mimi, đang dùng giọng thiết bị':'';
+  e.textContent=t}
 function refreshIcons(){
   $('#bPrev').innerHTML=IC.prev;$('#bNext').innerHTML=IC.next;$('#bSub').innerHTML=IC.sub;$('#bFull').innerHTML=IC.full;$('#btnSet').innerHTML=IC.gear;
-  $('#bBi').classList.toggle('on',!!ST.set.bi);$('#selSpeed').value=String(ST.set.speed||1);$('#bVoice').innerHTML=ST.set.voice?IC.vol:IC.mute;$('#bVoice').classList.toggle('on',ST.set.voice);$('#bSub').classList.toggle('on',ST.set.sub!=='off');updPlay();
+  $('#bBi').classList.toggle('on',!!ST.set.bi);$('#selSpeed').value=String(ST.set.speed||1);$('#bVoice').innerHTML=(ST.set.voice?IC.vol:IC.mute)+'<span>Giọng: '+(ST.set.voice?'Bật':'Tắt')+'</span>';vStatUpd();$('#bVoice').classList.toggle('on',ST.set.voice);$('#bSub').classList.toggle('on',ST.set.sub!=='off');updPlay();
 }
 $('#bSub').onclick=()=>{ST.set.sub={both:'en',en:'off',off:'both'}[ST.set.sub];Eng.subMode=ST.set.sub;$('#setSub').value=ST.set.sub;save();refreshIcons();toast({both:'Phụ đề Anh và Việt',en:'Chỉ phụ đề tiếng Anh',off:'Đã tắt phụ đề'}[ST.set.sub])};
 $('#bVoice').onclick=()=>{ST.set.voice=!ST.set.voice;save();refreshIcons();if(!ST.set.voice&&SS)SS.cancel();toast(ST.set.voice?'Đã bật giọng đọc':'Đã tắt giọng đọc')};
@@ -7712,13 +7734,13 @@ async function startRec(){
   if($('#stVoice').checked&&nvOn()){
     const rs=$('#recStatus');recUI(true);rs.dataset.nv='1';
     try{
-      rs.textContent='Đang tải giọng AI…';await nvLoad();
+      rs.textContent='Đang tải giọng Mimi…';await nvLoad();
       const lst=buildFlat(l,pi<0?null:pi);rs.dataset.nv='0';
-      for(let k=0;k<lst.length;k++){const st=lst[k].step;if(!st.en)continue;rs.textContent='Đang tạo giọng AI '+(k+1)+'/'+lst.length+'…';await nvBuf(st.en,stepWho(st),stepRate())}
+      for(let k=0;k<lst.length;k++){const st=lst[k].step;if(!st.en)continue;rs.textContent='Đang tạo giọng Mimi '+(k+1)+'/'+lst.length+'…';await nvBuf(st.en,stepWho(st),stepRate())}
       useNV=true;
     }catch(e){useNV=false;e0=e}
     rs.dataset.nv='0';recUI(false);
-    if(!useNV){const em=(NV.err&&NV.err.message)||(e0&&e0.message)||'';rs.textContent='Chưa quay được: giọng AI chưa sẵn sàng ('+em.slice(0,80)+'). Mình không quay bằng giọng dự phòng vì nghe rất tệ. Hãy tải lại trang, hoặc mở app qua địa chỉ web có thư mục assets, rồi quay lại.';toast('Giọng AI chưa sẵn sàng nên mình chưa quay, tránh video có giọng tệ.');return}
+    if(!useNV){const em=(NV.err&&NV.err.message)||(e0&&e0.message)||'';rs.textContent='Chưa quay được: giọng Mimi chưa sẵn sàng ('+em.slice(0,80)+'). Mình không quay bằng giọng dự phòng vì nghe rất tệ. Hãy tải lại trang, hoặc mở app qua địa chỉ web có thư mục assets, rồi quay lại.';toast('Giọng Mimi chưa sẵn sàng nên mình chưa quay, tránh video có giọng tệ.');return}
   }
   const list=buildFlat(l,pi<0?null:pi),wm=$('#stWm').value.trim(),intro=$('#stIntro').checked;
   Eng.setFormat(curFmt());Eng.setTheme(l.theme);applyLessonLook(l);Eng.lessonTitle=lessonLabel(l);Eng.wm=wm;Eng.showChip=true;Eng.subMode=$('#stVi').checked?'both':'en';Eng.resetCur();Eng.show(list[0].step);
@@ -7755,7 +7777,7 @@ async function startRec(){
   const r=$('#recResult');r.hidden=false;
   r.innerHTML='<h3>'+(ok?'Video đã sẵn sàng':'Video (đã dừng sớm)')+'</h3><video controls playsinline src="'+lastUrl+'"></video><p class="muted mt">'+(blob.size/1048576).toFixed(1)+' MB · '+ext.toUpperCase()+'</p><div class="row mt"><button class="btn" id="bSaveVid">Lưu video</button><button class="btn alt" id="bRecAgain">Quay lại</button></div><p class="muted mt" style="font-size:13px">Tải file lên YouTube, TikTok, Facebook hoặc Instagram.</p>';
   $('#bSaveVid').onclick=()=>saveVideo(blob,'mimi-english-'+l.id+'.'+ext);$('#bRecAgain').onclick=()=>{r.hidden=true;studioPreview();$('#recBar i').style.width='0'};
-  $('#recStatus').textContent=(ok?'Quay xong.':'Đã dừng quay.')+($('#stVoice').checked?(useNV?' Giọng trong video: giọng AI.':' Giọng trong video: '+(nvOn()?'':'giọng dự phòng/nhẹ.')):'');
+  $('#recStatus').textContent=(ok?'Quay xong.':'Đã dừng quay.')+($('#stVoice').checked?(useNV?' Giọng trong video: giọng Mimi.':' Giọng trong video: '+(nvOn()?'':'giọng dự phòng/nhẹ.')):'');
   if(ok){ST.rec++;addXP(15);sfx('win')}
 }
 function stopRec(){recAbort=true;stopAll();if(recorder&&recorder.state==='recording'){}}
