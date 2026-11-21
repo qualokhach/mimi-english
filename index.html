@@ -7,7 +7,7 @@ window.addEventListener('unhandledrejection',function(e){var m=e.reason&&(e.reas
 setTimeout(function(){if(!window.__ready){errs.push('Sau 20 giây app vẫn chưa khởi động xong');bar()}},20000);
 window.__bootErrs=errs;})();
 </script>
-<meta name="description" content="Học tiếng Anh vui cùng Mimi: bài học 3D, ngữ pháp, đọc, nghe, luyện nói từ A1 đến C2"><meta property="og:type" content="website"><meta property="og:site_name" content="Mimi English"><meta property="og:title" content="Mimi English"><meta property="og:description" content="Học tiếng Anh vui cùng Mimi: bài học 3D, ngữ pháp, đọc, nghe, luyện nói từ A1 đến C2"><meta property="og:image" content="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png"><meta property="og:image:secure_url" content="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png"><meta property="og:image:type" content="image/png"><meta property="og:locale" content="vi_VN"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Mimi English"><meta name="twitter:description" content="Học tiếng Anh vui cùng Mimi: bài học 3D, ngữ pháp, đọc, nghe, luyện nói từ A1 đến C2"><meta name="twitter:image" content="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png"><link rel="icon" href="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Mimi English"><meta property="og:title" content="Mimi English"><meta property="og:description" content="Learn English with Mimi through 3D lessons, grammar, reading, listening and speaking practice from A1 to C2."><meta property="og:image" content="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png"><meta property="og:image:secure_url" content="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png"><meta property="og:image:alt" content="Mimi English learning app thumbnail"><meta property="og:locale" content="vi_VN"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Mimi English"><meta name="twitter:description" content="Learn English with Mimi through 3D lessons, grammar, reading, listening and speaking practice from A1 to C2."><meta name="twitter:image" content="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png"><meta name="twitter:image:alt" content="Mimi English learning app thumbnail"><link rel="icon" href="https://res.cloudinary.com/wnlmpwor/image/upload/v1795101751/mimi-thumbnail.png">
 <title>Mimi English</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
@@ -1000,14 +1000,18 @@ const Eng=(function(){
   const leo=makeCharSafe({body:'#ffb84d',belly:'#fff1cc',feet:'#e0902b',ears:true});
   function makeCharSafe(p){try{return makeChar(p)}catch(e){return null}}
   try{
-    renderer=new THREE.WebGLRenderer({antialias:!LOW,preserveDrawingBuffer:true,powerPreference:'default'});
-    renderer.shadowMap.enabled=true;renderer.shadowMap.type=LOW?THREE.PCFShadowMap:THREE.PCFSoftShadowMap;
+    /* thử nhiều cấu hình, vì một số điện thoại không tạo được WebGL với tuỳ chọn đầy đủ */
+    const tries=[{antialias:!LOW,preserveDrawingBuffer:true,powerPreference:'default'},{antialias:false,preserveDrawingBuffer:true},{antialias:false,preserveDrawingBuffer:false,powerPreference:'low-power'},{antialias:false,preserveDrawingBuffer:false,alpha:false,depth:true,stencil:false,precision:'mediump',failIfMajorPerformanceCaveat:false}];
+    let lastE=null;renderer=null;
+    for(const o of tries){try{renderer=new THREE.WebGLRenderer(o);if(renderer&&renderer.getContext&&renderer.getContext()&&!renderer.getContext().isContextLost())break;renderer=null}catch(e){lastE=e;renderer=null}}
+    if(!renderer)throw lastE||new Error('no webgl');
+    renderer.shadowMap.enabled=!(LOW&&/Android|iPhone|iPad/i.test(navigator.userAgent||''))||true;renderer.shadowMap.type=LOW?THREE.PCFShadowMap:THREE.PCFSoftShadowMap;
     scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(35,16/9,.1,200);
     const hemi=new THREE.HemisphereLight(0xffffff,0x8ea0c8,.95);scene.add(hemi);
     const sun=new THREE.DirectionalLight(0xffffff,.85);sun.position.set(5,10,8);sun.castShadow=true;sun.shadow.mapSize.set(LOW?512:1024,LOW?512:1024);
     const sc=sun.shadow.camera;sc.left=-12;sc.right=12;sc.top=10;sc.bottom=-6;sc.near=1;sc.far=40;sun.shadow.bias=-.0006;sun.shadow.normalBias=.03;scene.add(sun);
     mimi.root.position.set(-3.6,0,0);leo.root.position.set(3.6,0,0);scene.add(mimi.root,leo.root);leo.root.visible=false;
-  }catch(e){ok=false}
+  }catch(e){ok=false;window.__glErr=String(e&&e.message||e).slice(0,160)}
   function gradTex(a,b){const c=document.createElement('canvas');c.width=2;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,a);g.addColorStop(1,b);x.fillStyle=g;x.fillRect(0,0,2,256);return new THREE.CanvasTexture(c)}
   const THEMES={
     meadow:{sky:['#6ec6ff','#eaf8ff'],ground:'#79d457',plat:'#a4e57f'},
@@ -1207,7 +1211,7 @@ const Eng=(function(){
   }
   function frame(now){
     requestAnimationFrame(frame);
-    if(!ok){cx.fillStyle='#0a0f2b';cx.fillRect(0,0,CW,CH);return}
+    if(!ok){const g=cx.createLinearGradient(0,0,0,CH);g.addColorStop(0,'#3d6bff');g.addColorStop(1,'#12b886');cx.fillStyle=g;cx.fillRect(0,0,CW,CH);try{if(!document.hidden&&comp.isConnected){drawOverlay();out.frames++}}catch(e){}return}
     if(document.hidden||!comp.isConnected)return;               /* ẩn tab hoặc chưa gắn vào trang: không vẽ */
     if((LOW||out.rec)&&now-lastDraw<30)return;                    /* máy yếu hoặc điện thoại: tối đa khoảng 30 khung/giây */
     lastDraw=now;const dt=Math.min(.05,(now-last)/1000||.016);last=now;T+=dt;
@@ -1233,7 +1237,7 @@ const Eng=(function(){
     const url=tr_.domElement.toDataURL('image/png');cache[key]=url;return url;
   }
   setFormat('16:9');
-  if(ok){setTheme('meadow');requestAnimationFrame(frame)}else{cx.fillStyle='#0a0f2b';cx.fillRect(0,0,CW,CH)}
+  if(ok)setTheme('meadow');requestAnimationFrame(frame);
   out.setSide=function(sv){side=sv<0?-1:1;if(ok){computeLayout();mirror();if(cur)show(cur,true);else{mimi.root.position.x=L.mimiX}}};
   out.dress=function(o){if(!ok)return;dress(mimi,o&&o.mimi);dress(leo,o&&o.leo)};
   out.sim=function(sec){for(let t=0;t<sec;t+=.05){T+=.05;update(.05)}};out.ok=ok;out.show=show;out.setTalk=setTalk;out.setTheme=setTheme;out.setFormat=setFormat;out.thumb=thumb;out.mount=function(el){el.appendChild(comp)};out.isOK=()=>ok;
@@ -7479,8 +7483,8 @@ async function run(list,i0,o){
 let currentView='learn';
 function mountStage(){
   const host=currentView==='studio'?$('#studioStage'):(currentView==='learn'?$('#stageBox'):(currentView==='gram'?$('#gStage'):null));if(!host)return;
-  if(!Eng.isOK()){host.innerHTML='<div class="err">Trình duyệt này chưa bật được WebGL nên không vẽ được cảnh 3D. Hãy thử Chrome, Edge hoặc Safari bản mới.</div>'}
   Eng.mount(host);
+  if(!Eng.isOK()&&host.parentNode){const o=host.parentNode.querySelector('.glnote');if(o)o.remove();const d=document.createElement('div');d.className='glnote err';d.style.cssText='font-size:13px;margin:8px 0';d.innerHTML='Máy này chưa bật được hình 3D (trình duyệt trong Zalo/Facebook thường bị vậy). Bài học vẫn chạy với chữ và giọng đọc. Muốn thấy bạn Mimi 3D, hãy mở app bằng Chrome hoặc Safari.'+(window.__glErr?' <small>Mã lỗi: '+esc(window.__glErr)+'</small>':'');host.parentNode.insertBefore(d,host.nextSibling)}
 }
 function go(v){
   if(v==='studio'&&typeof proActive==='function'&&!proActive()){proOpen();return}
