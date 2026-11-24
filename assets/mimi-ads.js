@@ -2,14 +2,15 @@
 (function () {
   'use strict';
   var isMobile = window.matchMedia('(max-width: 820px)').matches;
-  if (isMobile) {
-    // PASTE MOBILE TOP BANNER CODE HERE (renders inside #mimi-ad-top)
-  } else if (!window.__mimiMonetag) {
-    // Monetag In-Page Push (zone 12297676). Banner count/position are set in the Monetag dashboard.
-    // The matching service worker (zone 12297653) lives inside /sw.js together with the app's offline cache.
+  // Monetag In-Page Push (zone 12297676) — loaded on desktop AND mobile (same tag). Banner count/position are set
+  // in the Monetag dashboard. The matching service worker (zone 12297653) lives inside /sw.js with the offline cache.
+  if (!window.__mimiMonetag) {
     window.__mimiMonetag = 1;
     (function (s) { s.dataset.zone = '12297676'; s.src = 'https://nap5k.com/tag.min.js'; })
       ([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+  }
+  if (isMobile) {
+    // OPTIONAL: paste a separate banner code here to render inside #mimi-ad-top (the 62px strip at the top).
   }
 
   function init() {
