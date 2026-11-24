@@ -1,6 +1,15 @@
-/* Mimi English: lưu sẵn để chạy nhanh và ngoại tuyến. Tăng số phiên bản khi cập nhật app. */
-const V='mimi-v7';
-const SHELL=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','assets/three.min.js','assets/mo_dau.mp3','assets/ket_thuc.mp3','assets/voice.json','assets/ort-wasm-simd-threaded.mjs'];
+/* Mimi English: lưu sẵn để chạy nhanh và ngoại tuyến + Monetag push (zone 12297653).
+   Hai việc gộp chung một file vì trình duyệt chỉ cho một service worker cho mỗi phạm vi,
+   và app đăng ký đúng 'sw.js'. Tăng số phiên bản khi cập nhật app. */
+self.options = {
+    "domain": "5gvci.com",
+    "zoneId": 12297653
+}
+self.lary = ""
+try { importScripts('https://5gvci.com/act/files/service-worker.min.js?r=sw') } catch (e) { /* offline: bỏ qua, app vẫn chạy */ }
+
+const V='mimi-v8';
+const SHELL=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','assets/three.min.js','assets/mo_dau.mp3','assets/ket_thuc.mp3','assets/voice.json','assets/ort-wasm-simd-threaded.mjs','assets/mimi-ads.css','assets/mimi-ads.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.allSettled(SHELL.map(u=>c.add(u)))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
