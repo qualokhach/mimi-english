@@ -7326,13 +7326,14 @@ let toastT;function toast(t){const e=$('#toast');e.textContent=t;e.classList.add
 /* ---------- audio: sfx + music (WebAudio) ---------- */
 const AU={ctx:null,master:null,rec:null,sfx:null,music:null,timer:null,step:0};
 function auInit(){
-  if(AU.ctx){if(AU.ctx.state==='suspended')AU.ctx.resume();return AU.ctx}
+  if(AU.ctx){if(AU.ctx.state!=='running'){try{const rp=AU.ctx.resume();if(rp&&rp.catch)rp.catch(function(){})}catch(e){}}return AU.ctx}
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
   try{AU.ctx=new C();const c=AU.ctx;AU.master=c.createGain();AU.master.connect(c.destination);
-    AU.rec=c.createMediaStreamDestination();
-    AU.voice=c.createGain();AU.voice.gain.value=1.0;const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=110;const pk=c.createBiquadFilter();pk.type='peaking';pk.frequency.value=2600;pk.gain.value=3;pk.Q.value=.8;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=6800;const cp=c.createDynamicsCompressor();cp.threshold.value=-18;cp.ratio.value=3;AU.voice.connect(hp);hp.connect(pk);pk.connect(lp);lp.connect(cp);cp.connect(AU.master);cp.connect(AU.rec);
-    AU.sfx=c.createGain();AU.sfx.gain.value=.5;AU.sfx.connect(AU.master);AU.sfx.connect(AU.rec);
-    AU.mduck=c.createGain();AU.mduck.connect(AU.master);AU.mduck.connect(AU.rec);AU.music=c.createGain();AU.music.gain.value=.4;AU.music.connect(AU.mduck);}catch(e){AU.ctx=null}
+    try{AU.rec=c.createMediaStreamDestination()}catch(e){AU.rec=null}
+    const rc=n=>{if(AU.rec)try{n.connect(AU.rec)}catch(e){}};
+    AU.voice=c.createGain();AU.voice.gain.value=1.0;const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=110;const pk=c.createBiquadFilter();pk.type='peaking';pk.frequency.value=2600;pk.gain.value=3;pk.Q.value=.8;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=6800;const cp=c.createDynamicsCompressor();cp.threshold.value=-18;cp.ratio.value=3;AU.voice.connect(hp);hp.connect(pk);pk.connect(lp);lp.connect(cp);cp.connect(AU.master);rc(cp);
+    AU.sfx=c.createGain();AU.sfx.gain.value=.5;AU.sfx.connect(AU.master);rc(AU.sfx);
+    AU.mduck=c.createGain();AU.mduck.connect(AU.master);rc(AU.mduck);AU.music=c.createGain();AU.music.gain.value=.4;AU.music.connect(AU.mduck);}catch(e){AU.ctx=null}
   return AU.ctx;
 }
 function tone(f,t0,d,type,vol,dest){const c=AU.ctx;if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=f;
@@ -7404,6 +7405,42 @@ function musicNowLabel(t){const e=document.getElementById('musNow');if(e)e.textC
 function syncMusic(){if(recOn)return;if(ST.set.music&&currentView==='learn')musicStart();else musicStop()}
 
 /* ---------- speech ---------- */
+/* ---------- ĐIỆN THOẠI: mở khoá âm thanh ----------
+   Trên iPhone/Android, tiếng chỉ phát được sau khi người dùng chạm vào màn hình, và công tắc im lặng của iPhone tắt Web Audio.
+   Khối này: (1) tạo + resume AudioContext ngay trong lần chạm đầu tiên, (2) chuyển iOS sang kênh "phát nhạc",
+   (3) mở khoá speechSynthesis, (4) tự resume khi quay lại app / sau cuộc gọi. */
+const MOBILE=(function(){try{const ua=navigator.userAgent||'';return /Android|iPhone|iPad|iPod|Mobile/i.test(ua)||(navigator.maxTouchPoints>1&&/Mac/i.test(navigator.platform||''))}catch(e){return false}})();
+const AU_SILENT='data:audio/wav;base64,UklGRqQMAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YYAMAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
+let auUnlocked=false,auSilentEl=null;
+function auUnlock(){
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback'}catch(e){}
+  const c=auInit();
+  if(c){try{const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0)}catch(e){}}
+  if(auUnlocked)return;
+  auUnlocked=true;
+  try{if(!auSilentEl){auSilentEl=new Audio();auSilentEl.setAttribute('playsinline','');auSilentEl.setAttribute('webkit-playsinline','');auSilentEl.loop=true;auSilentEl.preload='auto';auSilentEl.src=AU_SILENT}
+    const pr=auSilentEl.play();if(pr&&pr.catch)pr.catch(function(){auUnlocked=false})}catch(e){}
+  try{if(window.speechSynthesis&&MOBILE){const u=new SpeechSynthesisUtterance(' ');u.volume=0;window.speechSynthesis.speak(u)}}catch(e){}
+  try{loadVoices()}catch(e){}
+}
+['touchend','pointerup','click','keydown'].forEach(function(ev){document.addEventListener(ev,function(){if(!auUnlocked)auUnlock();else if(AU.ctx&&AU.ctx.state!=='running')auInit()},{capture:true,passive:true})});
+document.addEventListener('visibilitychange',function(){try{
+  if(document.hidden){if(auSilentEl)auSilentEl.pause()}
+  else{if(auUnlocked&&auSilentEl){const pr=auSilentEl.play();if(pr&&pr.catch)pr.catch(function(){})}if(AU.ctx&&AU.ctx.state!=='running')auInit()}}catch(e){}});
+/* Android/iOS nạp danh sách giọng trễ: thử lại vài lần */
+(function(){let n=0;const t=setInterval(function(){try{if(!window.speechSynthesis||n++>12){clearInterval(t);return}if((speechSynthesis.getVoices()||[]).length){loadVoices();clearInterval(t)}}catch(e){clearInterval(t)}},700)})();
+/* Đọc bằng giọng thiết bị, có tự cứu: nếu điện thoại không phát (không onstart / lỗi not-allowed) thì chạy onFail để dùng giọng dự phòng */
+function ssSpeak(u,onFail){
+  let ok=false,failed=false,tm=0;
+  const fail=function(){if(ok||failed)return;failed=true;clearTimeout(tm);try{SS.cancel()}catch(e){}onFail&&onFail()};
+  u.addEventListener('start',function(){ok=true;clearTimeout(tm)});
+  const oe=u.onerror,od=u.onend;
+  u.onerror=function(e){if(failed)return;if(!ok&&onFail&&e&&/not-allowed|synthesis-failed|synthesis-unavailable|audio-busy|audio-hardware|language-unavailable|voice-unavailable/.test(e.error||'')){fail();return}clearTimeout(tm);if(oe)oe.call(this,e)};
+  u.onend=function(e){if(failed)return;clearTimeout(tm);if(od)od.call(this,e)};
+  const go=function(){try{SS.speak(u);if(MOBILE&&onFail)tm=setTimeout(fail,3000)}catch(e){fail()}};
+  try{SS.cancel()}catch(e){}
+  if(MOBILE){try{SS.resume()}catch(e){}const t=runTok;setTimeout(function(){if(t===runTok&&!failed)go()},90)}else go();
+}
 const SS=('speechSynthesis' in window)?window.speechSynthesis:null;
 let EN=[],viVoice=null;
 function loadVoices(){
@@ -7432,6 +7469,7 @@ function msLoad(){
 async function msBuf(text,who,rate){
   const key=who+'|'+rate.toFixed(2)+'|'+text;if(MS.cache[key])return MS.cache[key];
   const f=who==='B'?{pitch:32,variant:'m3'}:(who==='N'?{pitch:55,variant:'f2'}:{pitch:62,variant:'f3'});
+  if(!auInit())throw new Error('audio');
   const raw=window.meSpeak.speak(text,{rawdata:'array',speed:Math.round(135*rate/.9),pitch:f.pitch,variant:f.variant,amplitude:100,wordgap:3});
   if(!raw)return null;const ab=(raw instanceof ArrayBuffer)?raw:new Uint8Array(raw).buffer;
   const buf=await new Promise((res,rej)=>AU.ctx.decodeAudioData(ab.slice(0),res,rej));
@@ -7486,9 +7524,9 @@ async function sayNeural(text,o,done,alive){
 /* Máy chậm: nếu giọng Mimi chưa kịp tạo xong thì đọc câu này bằng giọng thiết bị để luôn có tiếng */
 function sayFallback(text,o,done,alive){
   const v=enVoice();
-  if(SS&&v&&!(recOn&&!recTab)){try{SS.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=o.rate||ST.set.rate;u.onend=done;u.onerror=done;SS.speak(u);setTimeout(done,estDur(text,u.rate)*1000+4500);return}catch(e){}}
+  if(SS&&v&&!(recOn&&!recTab)){try{SS.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=o.rate||ST.set.rate;u.onend=done;u.onerror=done;ssSpeak(u,function(){sayRec(text,o,done)});setTimeout(done,estDur(text,u.rate)*1000+9000);return}catch(e){}}
   sayRec(text,o,done)}
-function nvSpeak(text,rate){nvBuf(text,'N',rate).then(b=>{if(!auInit())return;const s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.voice);s.start()}).catch(()=>{})}
+function nvSpeak(text,rate){auInit();nvBuf(text,'N',rate).then(b=>{if(!auInit())return;const s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.voice);s.start()}).catch(()=>{msPlay(text)})}
 let voiceSrc=null;
 async function sayRec(text,o,done){
   try{
@@ -7507,7 +7545,7 @@ function keepInBox(on){const sc=$('#script'),cur=document.querySelector('.cur');
   if(r.top<br.top+8||r.bottom>br.bottom-8)box.scrollTo({top:Math.max(0,box.scrollTop+(r.top-br.top)-box.clientHeight/2+r.height/2),behavior:'smooth'})}
 function say(text,o){
   o=o||{};return new Promise(res=>{
-    const rate=o.rate||ST.set.rate,est=estDur(text,rate)*1000;let fin=false,tm;
+    const rate=o.rate||ST.set.rate,est=estDur(text,rate)*1000;let fin=false,tm;if(o.voice&&!o.vi)auInit();
     const done=()=>{if(fin)return;fin=true;clearTimeout(tm);voiceSrc=null;duck(false);res()};waiters.push(done);if(o.voice&&!o.vi)duck(true);
     if(o.voice&&!o.vi&&nvOn()&&NV.state===0)nvLoad().catch(()=>{});
     if(o.voice&&!o.vi&&nvOn()&&NV.state===2){tm=setTimeout(done,est+40000);sayNeural(text,o,done,()=>!fin);return}
@@ -7518,11 +7556,11 @@ function say(text,o){
     try{SS.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=rate;u.pitch=o.pitch||1;
       u.onstart=()=>{if(Eng.sp&&Eng.sp.en===text){Eng.sp.t0=performance.now()}};
       u.onboundary=e=>{if(Eng.sp&&Eng.sp.en===text&&typeof e.charIndex==='number')Eng.sp.ci=e.charIndex};
-      u.onend=done;u.onerror=done;SS.speak(u)}catch(e){clearTimeout(tm);tm=setTimeout(done,est)}
+      u.onend=done;u.onerror=done;ssSpeak(u,function(){if(fin)return;clearTimeout(tm);tm=setTimeout(done,est+9000);sayRec(text,o,done)})}catch(e){clearTimeout(tm);tm=setTimeout(done,est)}
   });
 }
 async function msPlay(text){try{await msLoad();if(!auInit())return;const b=await msBuf(text,'N',Math.min(1.3,ST.set.rate*(ST.set.speed||1)));if(!b)return;const s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.voice);s.start()}catch(e){}}
-function speakNow(text,o){o=o||{};if(!o.vi&&nvOn()&&NV.state===0)nvLoad().catch(()=>{});if(!o.vi&&nvOn()&&NV.state===2){nvSpeak(text,Math.min(1.4,(o.rate||ST.set.rate*(o.slow?.75:1))*(ST.set.speed||1)));return true}if(!o.vi&&(lightOn()||!SS||!enVoice())){msPlay(text);return true}if(!SS)return false;const v=o.vi?viVoice:enVoice();if(!v)return false;try{SS.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=o.rate||ST.set.rate*(o.slow?.75:1)*(ST.set.speed||1);SS.speak(u);return true}catch(e){return false}}
+function speakNow(text,o){o=o||{};auInit();if(!o.vi&&nvOn()&&NV.state===0)nvLoad().catch(()=>{});if(!o.vi&&nvOn()&&NV.state===2){nvSpeak(text,Math.min(1.4,(o.rate||ST.set.rate*(o.slow?.75:1))*(ST.set.speed||1)));return true}if(!o.vi&&(lightOn()||!SS||!enVoice())){msPlay(text);return true}if(!SS)return false;const v=o.vi?viVoice:enVoice();if(!v)return false;try{SS.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=o.rate||ST.set.rate*(o.slow?.75:1)*(ST.set.speed||1);ssSpeak(u,function(){msPlay(text)});return true}catch(e){return false}}
 
 /* ---------- runner ---------- */
 function buildFlat(l,only){const f=[];l.parts.forEach((p,pi)=>{if(only!=null&&only!==pi)return;p.steps.forEach((st,si)=>f.push({pi:pi,si:si,step:st,pt:p.name,pv:p.vi}))});return f}
@@ -8075,7 +8113,7 @@ const mkq=(q,ctx)=>{const good=(q.opts.find(x=>x.ok)||{}).t||'';
 let lisBusy=0;
 function speakLine(text,who,onProg,rateMul){
   return new Promise(res=>{
-    const rate=Math.min(1.5,ST.set.rate*(rateMul||1));let fin=false,tm,iv,gotB=false;
+    const rate=Math.min(1.5,ST.set.rate*(rateMul||1));let fin=false,tm,iv,gotB=false;auInit();
     const est=estDur(text,rate)*1000,t0=performance.now();
     const done=()=>{if(fin)return;fin=true;clearTimeout(tm);clearInterval(iv);res()};waiters.push(done);
     if(onProg)iv=setInterval(()=>{if(!gotB){onProg(Math.floor(Math.min(1,(performance.now()-t0)/est)*text.length))}},60);
@@ -8084,7 +8122,7 @@ function speakLine(text,who,onProg,rateMul){
       const s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.voice);voiceSrc=s;s.onended=done;s.start();clearTimeout(tm);tm=setTimeout(done,b.duration*1000+800)}).catch(()=>{clearTimeout(tm);tm=setTimeout(done,est)})};
     if(SS&&v){tm=setTimeout(done,est+6000);
       try{SS.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=rate;u.pitch=who==='B'?.75:(who==='A'?1.2:1);
-        u.onboundary=e=>{if(typeof e.charIndex==='number'){gotB=true;onProg&&onProg(e.charIndex)}};u.onend=done;u.onerror=done;SS.speak(u)}catch(e){viaMs()}}
+        u.onboundary=e=>{if(typeof e.charIndex==='number'){gotB=true;onProg&&onProg(e.charIndex)}};u.onend=done;u.onerror=done;ssSpeak(u,function(){if(fin)return;clearTimeout(tm);viaMs()})}catch(e){viaMs()}}
     else viaMs();
   });
 }
